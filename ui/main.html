@@ -1,0 +1,201 @@
+<!-- This is the corresponding "starter code" for 04_Hello Map in Udacity and Google's Maps
+API Course, Lesson 1 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width = device-width, intial-scale = 1.0">
+        <!-- styles put here, but you can include a CSS file and reference it instead! -->
+        <style type="text/css">
+            html,
+            body {
+                font-family: Arial, sans-serif;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            .container {
+                height: 100%;
+                position: relative;
+            }
+
+            input {
+                font-size: 12px;
+            }
+
+            h1 {
+                color: #525454;
+                font-size: 22px;
+                margin: 0 0 10px 0;
+                text-align: center;
+            }
+        
+            #hide-listings,
+            #show-listings {
+                width: 48%;
+            }
+        
+            #map {
+                bottom: 0px;
+                height: 100%;
+                left: 362px;
+                position: absolute;
+                right: 0px;
+            }
+        
+            .options-box {
+                background: #fff;
+                border: 1px solid #999;
+                border-radius: 3px;
+                height: 100%;
+                line-height: 35px;
+                padding: 10px 10px 30px 10px;
+                text-align: left;
+                width: 340px;
+            }
+            
+            ul {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background-color: #333;
+            }
+        
+            li {
+                float: left;
+            }
+            
+            li a {
+                display: inline-block;
+                color: white;
+                text-align: center;
+                padding: 14px 16px;
+                text-decoration: none;
+            }
+            
+            li a:hover {
+                background-color: #111;
+            }
+            
+            .active {
+                background-color: red;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <ul>
+                    <li><a href="/" class="active">Home</a></li>
+                    <li><a href="/logout">Logout</a></li>
+                </ul>
+    
+                <!--<div id="home"><a href="/">Home</a></div>
+                <div id="logout"><a href="/logout" >Logout</a></div>-->
+            </div>
+            <div class="options-box">
+                <h1>Chitkara University</h1>
+                <div>
+                  <input id="show-listings" type="button" value="Show Listings">
+                  <input id="hide-listings" type="button" value="Hide Listings">
+                </div>
+            </div>
+            <div id="map"></div>
+        </div>
+            <script>
+              var map;
+        
+              var markers = [];
+        
+              function initMap() {
+                // Constructor creates a new map - only center and zoom are required.
+                map = new google.maps.Map(document.getElementById('map'), {
+                  center: {lat: 30.5176089, lng: 76.6595696},
+                  zoom: 18
+                });
+        
+                var locations = [
+                  {title: 'Babbage Block', location: {lat: 30.517434, lng: 76.660044}, halls: ["CURIE", "Internation Office"]},
+                  {title: 'Architect Block', location: {lat: 30.517181, lng: 76.660228}, halls: ["Peirreire"]},
+                  {title: 'Turing Block', location: {lat: 30.516491, lng: 76.660382}, halls: ["Placement cell", "Incubation Center"]},
+                  {title: 'Demorgan Block', location: {lat: 30.516186, lng: 76.660314}, halls: ["bernoli hall"]},
+                  {title: 'Edison Block', location: {lat: 30.516402, lng: 76.659759}, halls: ["mooc hall"]},
+                  {title: 'Newton Block', location: {lat: 30.516372, lng: 76.659484}, halls: ["Apple lab"]},
+                  {title: 'Fleming Block', location: {lat: 30.515704, lng: 76.660441}, halls: ["somehall"]},
+                  {title: 'Library', location: {lat: 30.515857, lng: 76.660546}, halls: []},
+                  {title: 'Pharmacy Block', location: {lat: 30.515539, lng: 76.660713}, halls: ["lab"]},
+                  {title: 'Galelio Block', location: {lat: 30.515644, lng: 76.659175}, halls: ["Nursing"]},
+                  {title: 'Teresa Block', location: {lat: 30.517183, lng: 76.658893}, halls: ["radio", "languages"]},
+                  {title: 'Hotel Management Block', location: {lat: 30.514873, lng: 76.659566}, halls: ["hm"]},
+                  /*{title: 'Pharmacy Block', location: {lat: 30.515539, lng: 76.660713}},
+                  {title: 'Pharmacy Block', location: {lat: 30.515539, lng: 76.660713}},
+                  {title: 'Pharmacy Block', location: {lat: 30.515539, lng: 76.660713}},
+                  {title: 'Pharmacy Block', location: {lat: 30.515539, lng: 76.660713}},*/
+                ];
+        
+                var largeInfowindow = new google.maps.InfoWindow();
+                var bounds = new google.maps.LatLngBounds();
+        
+                for (var i = 0; i < locations.length; i++) {
+                  var position = locations[i].location;
+                  var title = locations[i].title;
+                  var halls = locations[i].halls;
+                  var marker = new google.maps.Marker({
+                    //map: map,
+                    position: position,
+                    title,
+                    halls,
+                    animation: google.maps.Animation.DROP,
+                    id: i
+                  });
+        
+                  markers.push(marker);
+        
+                  marker.addListener('click', function() {
+                    populateInfoWindow(this, largeInfowindow);
+                  });
+                  bounds.extend(markers[i].position);
+                }
+        
+                map.fitBounds(bounds);
+        
+              document.getElementById('show-listings').addEventListener('click', showListings);
+              document.getElementById('hide-listings').addEventListener('click', hideListings);
+            }
+        
+              function populateInfoWindow(marker, infowindow) {
+                if (infowindow.marker != marker) {
+                  infowindow.marker = marker;
+                  infowindow.setContent(`<div>  ${marker.title} </div>
+                    <!-- Iterate over halls and then apend here in the list -->
+                    `
+                  );
+                  infowindow.open(map, marker);
+        
+                  infowindow.addListener('closeclick', function() {
+                    infowindow.setMarker = null;
+                  });
+                }
+              }
+        
+              function showListings() {
+                var bounds = new google.maps.LatLngBounds();
+                for (var i = 0; i < markers.length; i++) {
+                  markers[i].setMap(map);
+                  bounds.extend(markers[i].position);
+                }
+                map.fitBounds(bounds);
+              }
+        
+              function hideListings() {
+                for (var i = 0; i < markers.length; i++) {
+                  markers[i].setMap(null);
+                }
+              }
+        </script>
+        <!--TODO: Load the JS API ASYNCHRONOUSLY below.-->
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=<yourAPIKey>&v=3&callback=initMap">
+        </script>
+    </body>
+</html>
